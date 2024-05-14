@@ -7,6 +7,7 @@
 # 106713 Martim Ferreira
 
 import sys
+from sys import stdin
 from search import (
     Problem,
     Node,
@@ -34,6 +35,10 @@ class PipeManiaState:
 
 class Board:
     """Representação interna de um tabuleiro de PipeMania."""
+    
+    def __init__(self, board):
+        self.board = board
+        self.tamanho = len(board)
 
     def get_value(self, row: int, col: int) -> str:
         """Devolve o valor na respetiva posição do tabuleiro."""
@@ -54,17 +59,10 @@ class Board:
 
     @staticmethod
     def parse_instance():
-        """Lê o test do standard input (stdin) que é passado como argumento
-        e retorna uma instância da classe Board.
-
-        Por exemplo:
-            $ python3 pipe.py < test-01.txt
-
-            > from sys import stdin
-            > line = stdin.readline().split()
-        """
-        # TODO
-        pass
+        
+        line = stdin.read().split()
+        
+        return Board(line)
 
     # TODO: outros metodos da classe
 
@@ -105,6 +103,7 @@ class PipeMania(Problem):
 
 
 if __name__ == "__main__":
+    board = Board.parse_instance()
     # TODO:
     # Ler o ficheiro do standard input,
     # Usar uma técnica de procura para resolver a instância,
