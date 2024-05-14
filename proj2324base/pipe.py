@@ -8,6 +8,7 @@
 
 import sys
 from sys import stdin
+from utils import np
 from search import (
     Problem,
     Node,
@@ -42,6 +43,7 @@ class Board:
 
     def get_value(self, row: int, col: int) -> str:
         """Devolve o valor na respetiva posição do tabuleiro."""
+        return self.board[int(np.sqrt(self.tamanho)*row+col)]
         # TODO
         pass
 
@@ -63,6 +65,20 @@ class Board:
         line = stdin.read().split()
         
         return Board(line)
+
+    def show(self):
+        tamanho=self.tamanho
+        lado=np.sqrt(tamanho)
+        line=-1
+        for i in range(tamanho):
+            if (i%lado==0):
+                line+=1
+                if(i!=0):
+                    print("\n",end="")
+            if (i%lado == lado-1):
+                print(self.get_value(line,i%lado),end="")
+            else:
+                print(self.get_value(line,i%lado)+"\t",end="")
 
     # TODO: outros metodos da classe
 
@@ -104,6 +120,7 @@ class PipeMania(Problem):
 
 if __name__ == "__main__":
     board = Board.parse_instance()
+    board.show()
     # TODO:
     # Ler o ficheiro do standard input,
     # Usar uma técnica de procura para resolver a instância,
