@@ -15,6 +15,7 @@ from search import (
     astar_search,
     breadth_first_tree_search,
     depth_first_tree_search,
+    depth_first_graph_search,
     greedy_search,
     recursive_best_first_search,
 )
@@ -28,6 +29,7 @@ class Board:
     def __init__(self, board ):
         self.board = board
         self.tamanho = len(board)
+        self.blocked = [False]*len(board)
 
     def get_value(self, row: int, col: int) -> str:
         """Devolve o valor na respetiva posição do tabuleiro."""
@@ -71,7 +73,7 @@ class Board:
             if (i%lado == lado-1):
                 result += self.get_value(line,i%lado)
             else:
-                result += self.get_value(line,i%lado)+"\ t"
+                result += self.get_value(line,i%lado)+"\t"
         return result
 
     def change_piece(self, row: int, col: int,change ):
@@ -336,6 +338,52 @@ class PipeMania(Problem):
             if v != 2:
                 return False
         return True
+    
+    def fix_sides(self):
+        last = int(np.sqrt(self.board.tamanho))-1
+
+        for v in range(self.board.tamanho):
+            row = v//int(np.sqrt(self.board.tamanho))
+            col = v%int(np.sqrt(self.board.tamanho))
+            if row == 0 or col == 0 or row == last or col == last:
+                if row == 0 and col == 0 and self.board.get_value(row, col) in ["VC", "VE", "VD", "VB"]:
+                    self.board.change_piece(row, col, "VB")
+                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
+                elif row == 0 and col == last and self.board.get_value(row, col) in ["VC", "VB", "VD", "VE"]:
+                    self.board.change_piece(row, col, "VE")
+                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
+                elif row == last and col == last and self.board.get_value(row, col) in ["VB", "VE", "VD", "VC"]:
+                    self.board.change_piece(row, col, "VC")
+                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
+                elif row == last and col == 0 and self.board.get_value(row, col) in ["VC", "VE", "VB", "VD"]:
+                    self.board.change_piece(row, col, "VD")
+                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
+                elif row == 0 and self.board.get_value(row, col) in ["BC", "BE", "BD", "BB"]:
+                    self.board.change_piece(row, col, "BB")
+                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
+                elif row == 0 and self.board.get_value(row, col) in ["LV", "LH"]:
+                    self.board.change_piece(row, col, "LH")
+                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
+                elif row == last and self.board.get_value(row, col) in ["BC", "BE", "BD", "BB"]:
+                    self.board.change_piece(row, col, "BC")
+                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
+                elif row == last and self.board.get_value(row, col) in ["LV", "LH"]:
+                    self.board.change_piece(row, col, "LH")
+                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
+                elif col == 0 and self.board.get_value(row, col) in ["BC", "BE", "BD", "BB"]:
+                    self.board.change_piece(row, col, "BD")
+                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
+                elif col == 0 and self.board.get_value(row, col) in ["LV", "LH"]:
+                    self.board.change_piece(row, col, "LV")
+                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
+                elif col == last and self.board.get_value(row, col) in ["BC", "BE", "BD", "BB"]:
+                    self.board.change_piece(row, col, "BE")
+                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
+                elif col == last and self.board.get_value(row, col) in ["LV", "LH"]:
+                    self.board.change_piece(row, col, "LV")
+                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
+            
+            
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
@@ -349,8 +397,10 @@ if __name__ == "__main__":
     board = Board.parse_instance()
     # Criar uma instância de PipeMania:
     problem = PipeMania(board)
+    problem.fix_sides()
+    print(problem.board.show())
     # Obter o nó solução usando a procura em profundidade:
-    goal_node = depth_first_tree_search(problem)
+    goal_node = breadth_first_tree_search(problem)
     # Verificar se foi atingida a solução
     print("Is goal?", problem.goal_test(goal_node.state))
     print("Solution:\n", goal_node.state.board.print(), sep="")
