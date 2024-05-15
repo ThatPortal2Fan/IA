@@ -19,7 +19,15 @@ from search import (
     recursive_best_first_search,
 )
 
+pointdown = ["FB", "BB", "BE", "BD", "VB", "VE", "LV"]
+pointup = ["FC", "BC", "BE", "BD", "VD", "VC", "LV"]
+pointleft = ["FE", "BB", "BE", "BC", "VC", "VE", "LH"]
+pointright = ["FD", "BB", "BD", "BC", "VB", "VD", "LH"]
 
+fontes=["FC","FD","FB","FE"]
+bifurcacoes=["BC","BD","BB","BE"]
+voltas=["VC","VD","VB","VE"]
+ligacoes=["LH","LV"]
 
 
 class Board:
@@ -102,10 +110,6 @@ class PipeManiaState:
     def DFS_visit(self, board: Board, row, col, visit):
         position = int(np.sqrt(board.tamanho)*row+col)
 
-        pointdown = ["FB", "BB", "BE", "BD", "VB", "VE", "LV"]
-        pointup = ["FC", "BC", "BE", "BD", "VD", "VC", "LV"]
-        pointleft = ["FE", "BB", "BE", "BC", "VC", "VE", "LH"]
-        pointright = ["FD", "BB", "BD", "BC", "VB", "VD", "LH"]
         last = int(np.sqrt(board.tamanho))-1
         
         visit[position] = 1
@@ -260,13 +264,16 @@ class PipeMania(Problem):
         self.board=board
         self.initial = PipeManiaState(Board(board.get_board().copy()))
 
-    def actions(self, state: PipeManiaState):
+    def actions(self, state: PipeManiaState): #SÓ SIMPLIFIQUEI LIGEIRAMENTE. AINDA NÃO FIZ ISTO COMO DEVE SER
         """Retorna uma lista de ações que podem ser executadas a
         partir do estado passado como argumento."""
         lista=[]
-        for i in range(self.board.tamanho):
-            lista.append((i//int(np.sqrt(self.board.tamanho)),i%int(np.sqrt(self.board.tamanho)),True))
-            lista.append((i//int(np.sqrt(self.board.tamanho)),i%int(np.sqrt(self.board.tamanho)),False))
+        for v in range(self.board.tamanho):
+            if not self.board.blocked[v]:
+                row = v//int(np.sqrt(self.board.tamanho))
+                col = v%int(np.sqrt(self.board.tamanho))
+                lista.append((row,col,True))
+                lista.append((row,col,False))
         return lista
 
     def result(self, state: PipeManiaState, action):
@@ -274,53 +281,49 @@ class PipeMania(Problem):
         'state' passado como argumento. A ação a executar deve ser uma
         das presentes na lista obtida pela execução de
         self.actions(state)."""
-        f=("FC","FD","FB","FE")
-        b=("BC","BD","BB","BE")
-        v=("VC","VD","VB","VE")
-        l=("LH","LV")
         new_state=PipeManiaState(Board(state.board.get_board().copy()))
         piece=new_state.board.get_value(action[0],action[1])
-        if (piece in f):
+        if (piece in fontes):
             if (action[2]==True):
-                if(f.index(piece)!=3):
-                    new_state.board.change_piece(action[0],action[1],f[f.index(piece)+1])
+                if(fontes.index(piece)!=3):
+                    new_state.board.change_piece(action[0],action[1],fontes[fontes.index(piece)+1])
                 else:
-                    new_state.board.change_piece(action[0],action[1],f[0])
+                    new_state.board.change_piece(action[0],action[1],fontes[0])
             else:
-                if(f.index(piece)!=0):
-                    new_state.board.change_piece(action[0],action[1],f[f.index(piece)-1])
+                if(fontes.index(piece)!=0):
+                    new_state.board.change_piece(action[0],action[1],fontes[fontes.index(piece)-1])
                 else:
-                    new_state.board.change_piece(action[0],action[1],f[3])
+                    new_state.board.change_piece(action[0],action[1],fontes[3])
 
-        elif(piece in b):
+        elif(piece in bifurcacoes):
             if (action[2]==True):
-                if(b.index(piece)!=3):
-                    new_state.board.change_piece(action[0],action[1],b[b.index(piece)+1])
+                if(bifurcacoes.index(piece)!=3):
+                    new_state.board.change_piece(action[0],action[1],bifurcacoes[bifurcacoes.index(piece)+1])
                 else:
-                    new_state.board.change_piece(action[0],action[1],b[0])
+                    new_state.board.change_piece(action[0],action[1],bifurcacoes[0])
             else:
-                if(b.index(piece)!=0):
-                    new_state.board.change_piece(action[0],action[1],b[b.index(piece)-1])
+                if(bifurcacoes.index(piece)!=0):
+                    new_state.board.change_piece(action[0],action[1],bifurcacoes[bifurcacoes.index(piece)-1])
                 else:
-                    new_state.board.change_piece(action[0],action[1],b[3])
+                    new_state.board.change_piece(action[0],action[1],bifurcacoes[3])
                 
-        elif(piece in v):
+        elif(piece in voltas):
             if (action[2]==True):
-                if(v.index(piece)!=3):
-                    new_state.board.change_piece(action[0],action[1],v[v.index(piece)+1])
+                if(voltas.index(piece)!=3):
+                    new_state.board.change_piece(action[0],action[1],voltas[voltas.index(piece)+1])
                 else:
-                    new_state.board.change_piece(action[0],action[1],v[0])
+                    new_state.board.change_piece(action[0],action[1],voltas[0])
             else:
-                if(v.index(piece)!=0):
-                    new_state.board.change_piece(action[0],action[1],v[v.index(piece)-1])
+                if(voltas.index(piece)!=0):
+                    new_state.board.change_piece(action[0],action[1],voltas[voltas.index(piece)-1])
                 else:
-                    new_state.board.change_piece(action[0],action[1],v[3])
+                    new_state.board.change_piece(action[0],action[1],voltas[3])
                 
         else:
-            if(l.index(piece)==0):
-                new_state.board.change_piece(action[0],action[1],l[1])
+            if(ligacoes.index(piece)==0):
+                new_state.board.change_piece(action[0],action[1],ligacoes[1])
             else:
-                new_state.board.change_piece(action[0],action[1],l[0])
+                new_state.board.change_piece(action[0],action[1],ligacoes[0])
             
                 
         return new_state
@@ -345,44 +348,71 @@ class PipeMania(Problem):
             row = v//int(np.sqrt(self.board.tamanho))
             col = v%int(np.sqrt(self.board.tamanho))
             if row == 0 or col == 0 or row == last or col == last:
-                if row == 0 and col == 0 and self.board.get_value(row, col) in ["VC", "VE", "VD", "VB"]:
+                if row == 0 and col == 0 and self.board.get_value(row, col) in voltas:
                     self.board.change_piece(row, col, "VB")
-                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
-                elif row == 0 and col == last and self.board.get_value(row, col) in ["VC", "VB", "VD", "VE"]:
+                    self.board.blocked[v] = True
+                elif row == 0 and col == 0 and self.board.get_value(row, col) in fontes:
+                    self.board.change_piece(row, col, "FD")
+                elif row == 0 and col == last and self.board.get_value(row, col) in voltas:
                     self.board.change_piece(row, col, "VE")
-                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
-                elif row == last and col == last and self.board.get_value(row, col) in ["VB", "VE", "VD", "VC"]:
+                    self.board.blocked[v] = True
+                elif row == 0 and col == last and self.board.get_value(row, col) in fontes:
+                    self.board.change_piece(row, col, "FB")
+                elif row == last and col == last and self.board.get_value(row, col) in voltas:
                     self.board.change_piece(row, col, "VC")
-                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
-                elif row == last and col == 0 and self.board.get_value(row, col) in ["VC", "VE", "VB", "VD"]:
+                    self.board.blocked[v] = True
+                elif row == last and col == last and self.board.get_value(row, col) in fontes:
+                    self.board.change_piece(row, col, "FE")
+                elif row == last and col == 0 and self.board.get_value(row, col) in voltas:
                     self.board.change_piece(row, col, "VD")
-                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
-                elif row == 0 and self.board.get_value(row, col) in ["BC", "BE", "BD", "BB"]:
+                    self.board.blocked[v] = True
+                elif row == last and col == 0 and self.board.get_value(row, col) in fontes:
+                    self.board.change_piece(row, col, "FC")
+                elif row == 0 and self.board.get_value(row, col) in bifurcacoes:
                     self.board.change_piece(row, col, "BB")
-                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
-                elif row == 0 and self.board.get_value(row, col) in ["LV", "LH"]:
+                    self.board.blocked[v] = True
+                elif row == 0 and self.board.get_value(row, col) in ligacoes:
                     self.board.change_piece(row, col, "LH")
-                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
-                elif row == last and self.board.get_value(row, col) in ["BC", "BE", "BD", "BB"]:
+                    self.board.blocked[v] = True
+                elif row == 0 and self.board.get_value(row, col) in pointup:
+                    if self.board.get_value(row,col) in voltas:
+                        self.board.change_piece(row, col, "VB")
+                    else:
+                        self.board.change_piece(row, col, "FB")
+                elif row == last and self.board.get_value(row, col) in bifurcacoes:
                     self.board.change_piece(row, col, "BC")
-                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
-                elif row == last and self.board.get_value(row, col) in ["LV", "LH"]:
+                    self.board.blocked[v] = True
+                elif row == last and self.board.get_value(row, col) in ligacoes:
                     self.board.change_piece(row, col, "LH")
-                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
-                elif col == 0 and self.board.get_value(row, col) in ["BC", "BE", "BD", "BB"]:
+                    self.board.blocked[v] = True
+                elif row == last and self.board.get_value(row, col) in pointdown:
+                    if self.board.get_value(row,col) in voltas:
+                        self.board.change_piece(row, col, "VC")
+                    else:
+                        self.board.change_piece(row, col, "FC")
+                elif col == 0 and self.board.get_value(row, col) in bifurcacoes:
                     self.board.change_piece(row, col, "BD")
-                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
-                elif col == 0 and self.board.get_value(row, col) in ["LV", "LH"]:
+                    self.board.blocked[v] = True
+                elif col == 0 and self.board.get_value(row, col) in ligacoes:
                     self.board.change_piece(row, col, "LV")
-                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
-                elif col == last and self.board.get_value(row, col) in ["BC", "BE", "BD", "BB"]:
+                    self.board.blocked[v] = True
+                elif col == 0 and self.board.get_value(row, col) in pointleft:
+                    if self.board.get_value(row,col) in voltas:
+                        self.board.change_piece(row, col, "VD")
+                    else:
+                        self.board.change_piece(row, col, "FD")
+                elif col == last and self.board.get_value(row, col) in bifurcacoes:
                     self.board.change_piece(row, col, "BE")
-                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
-                elif col == last and self.board.get_value(row, col) in ["LV", "LH"]:
+                    self.board.blocked[v] = True
+                elif col == last and self.board.get_value(row, col) in ligacoes:
                     self.board.change_piece(row, col, "LV")
-                    self.board.blocked[int(np.sqrt(self.board.tamanho)*row+col)] = True
-            
-            
+                    self.board.blocked[v] = True
+                elif col == last and self.board.get_value(row, col) in pointright:
+                    if self.board.get_value(row,col) in voltas:
+                        self.board.change_piece(row, col, "VE")
+                    else:
+                        self.board.change_piece(row, col, "FE")
+
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
