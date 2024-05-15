@@ -72,6 +72,8 @@ class Board:
         lado=np.sqrt(tamanho)
         line=-1
         result = ""
+        print(result)
+        print(type(result))
         for i in range(tamanho):
             if (i%lado==0):
                 line+=1
@@ -439,6 +441,7 @@ class PipeMania(Problem):
         changes = False
         side = int(np.sqrt(self.board.tamanho))
         last = side-1
+        print(row, col)
         if self.board.get_value(row, col) in fontes:
             # cima
             if row != 0 and (len(self.board.possibilidades[side*(row-1)+col]) == 1 or (self.board.get_value(row-1, col) in voltas and len(self.board.possibilidades[side*(row-1)+col]) == 2)):
@@ -449,7 +452,7 @@ class PipeMania(Problem):
                 elif "FC" in self.board.possibilidades[side*row+col] and ((len(self.board.possibilidades[side*(row-1)+col]) == 1 and self.board.get_value(row-1,col) not in pointdown) or (self.board.get_value(row-1, col) in voltas and "VB" not in self.board.possibilidades[side*(row-1)+col] and "VE" not in self.board.possibilidades[side*(row-1)+col])):
                     self.board.possibilidades[side*row+col].remove("FC")
                     if self.board.get_value(row,col) == "FC":
-                        self.board.change_piece(row,col,self.board.possibilidades[0])
+                        self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
             # baixo
             if row != last and (len(self.board.possibilidades[side*(row+1)+col]) == 1 or self.board.get_value(row+1, col) in voltas and len(self.board.possibilidades[side*(row+1)+col]) == 2):
                 if (len(self.board.possibilidades[side*(row+1)+col]) == 1 and self.board.get_value(row+1,col) in pointup) or (self.board.get_value(row+1, col) in voltas and "VB" not in self.board.possibilidades[side*(row+1)+col] and "VE" not in self.board.possibilidades[side*(row+1)+col]):
@@ -459,7 +462,7 @@ class PipeMania(Problem):
                 elif "FB" in self.board.possibilidades[side*row+col] and ((len(self.board.possibilidades[side*(row+1)+col]) == 1 and self.board.get_value(row+1,col) not in pointup) or (self.board.get_value(row+1, col) in voltas and "VC" not in self.board.possibilidades[side*(row+1)+col] and "VD" not in self.board.possibilidades[side*(row+1)+col])):
                     self.board.possibilidades[side*row+col].remove("FB")
                     if self.board.get_value(row,col) == "FB":
-                        self.board.change_piece(row,col,self.board.possibilidades[0])
+                        self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
             # esquerda
             if col != 0 and (len(self.board.possibilidades[side*row+col-1]) == 1 or self.board.get_value(row, col-1) in voltas and len(self.board.possibilidades[side*row+col-1]) == 2):
                 if (len(self.board.possibilidades[side*row+col-1]) == 1 and self.board.get_value(row,col-1) in pointright) or (self.board.get_value(row, col-1) in voltas and "VC" not in self.board.possibilidades[side*row+col-1] and "VE" not in self.board.possibilidades[side*row+col-1]):
@@ -469,7 +472,7 @@ class PipeMania(Problem):
                 elif "FE" in self.board.possibilidades[side*row+col] and ((len(self.board.possibilidades[side*row+col-1]) == 1 and self.board.get_value(row,col-1) not in pointright) or (self.board.get_value(row, col-1) in voltas and "VB" not in self.board.possibilidades[side*row+col-1] and "VD" not in self.board.possibilidades[side*row+col-1])):
                     self.board.possibilidades[side*row+col].remove("FE")
                     if self.board.get_value(row,col) == "FE":
-                        self.board.change_piece(row,col,self.board.possibilidades[0])
+                        self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
             # direita
             if col != last and (len(self.board.possibilidades[side*row+col+1]) == 1 or self.board.get_value(row, col+1) in voltas and len(self.board.possibilidades[side*row+col+1]) == 2):
                 if (len(self.board.possibilidades[side*row+col+1]) == 1 and self.board.get_value(row,col+1) in pointleft) or (self.board.get_value(row, col+1) in voltas and "VD" not in self.board.possibilidades[side*row+col+1] and "VB" not in self.board.possibilidades[side*row+col+1]):
@@ -479,7 +482,8 @@ class PipeMania(Problem):
                 elif "FD" in self.board.possibilidades[side*row+col] and ((len(self.board.possibilidades[side*row+col+1]) == 1 and self.board.get_value(row,col+1) not in pointleft) or (self.board.get_value(row, col+1) in voltas and "VC" not in self.board.possibilidades[side*row+col+1] and "VE" not in self.board.possibilidades[side*row+col+1])):
                     self.board.possibilidades[side*row+col].remove("FD")
                     if self.board.get_value(row,col) == "FD":
-                        self.board.change_piece(row,col,self.board.possibilidades[0])
+                        print(len(self.board.possibilidades[side*row+col]))
+                        self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
         elif self.board.get_value(row, col) in bifurcacoes:
             #cima
             if len(self.board.possibilidades[side*(row+1)+col]) == 1 or (self.board.get_value(row+1, col) in voltas and len(self.board.possibilidades[side*(row+1)+col]) == 2):
@@ -490,7 +494,7 @@ class PipeMania(Problem):
                 elif "BC" in self.board.possibilidades[side*row+col] and ((len(self.board.possibilidades[side*(row+1)+col]) == 1 and self.board.get_value(row+1,col) in pointup) or (self.board.get_value(row+1, col) in voltas and "VB" not in self.board.possibilidades[side*(row+1)+col] and "VE" not in self.board.possibilidades[side*(row+1)+col])):
                     self.board.possibilidades[side*row+col].remove("BC")
                     if self.board.get_value(row,col) == "BC":
-                        self.board.change_piece(row,col,self.board.possibilidades[0])
+                        self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
             #baixo
             if len(self.board.possibilidades[side*(row-1)+col]) == 1 or (self.board.get_value(row-1, col) in voltas and len(self.board.possibilidades[side*(row-1)+col]) == 2):
                 if (len(self.board.possibilidades[side*(row-1)+col]) == 1 and self.board.get_value(row-1,col) not in pointdown) or (self.board.get_value(row-1, col) in voltas and "VB" not in self.board.possibilidades[side*(row-1)+col] and "VE" not in self.board.possibilidades[side*(row-1)+col]):
@@ -500,7 +504,7 @@ class PipeMania(Problem):
                 elif "BB" in self.board.possibilidades[side*row+col] and ((len(self.board.possibilidades[side*(row-1)+col]) == 1 and self.board.get_value(row-1,col) in pointdown) or (self.board.get_value(row-1, col) in voltas and "VC" not in self.board.possibilidades[side*(row-1)+col] and "VD" not in self.board.possibilidades[side*(row-1)+col])):
                     self.board.possibilidades[side*row+col].remove("BB")
                     if self.board.get_value(row,col) == "BB":
-                        self.board.change_piece(row,col,self.board.possibilidades[0])
+                        self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
             #esquerda
             if len(self.board.possibilidades[side*row+col+1]) == 1 or self.board.get_value(row, col+1) in voltas and len(self.board.possibilidades[side*row+col+1]) == 2:
                 if (len(self.board.possibilidades[side*row+col+1]) == 1 and self.board.get_value(row,col+1) not in pointleft) or (self.board.get_value(row, col+1) in voltas and "VE" not in self.board.possibilidades[side*row+col+1] and "VC" not in self.board.possibilidades[side*row+col+1]):
@@ -510,7 +514,7 @@ class PipeMania(Problem):
                 elif "BE" in self.board.possibilidades[side*row+col] and ((len(self.board.possibilidades[side*row+col+1]) == 1 and self.board.get_value(row,col+1) in pointleft) or (self.board.get_value(row, col+1) in voltas and "VB" not in self.board.possibilidades[side*row+col+1] and "VD" not in self.board.possibilidades[side*row+col+1])):
                     self.board.possibilidades[side*row+col].remove("BE")
                     if self.board.get_value(row,col) == "BE":
-                        self.board.change_piece(row,col,self.board.possibilidades[0])
+                        self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
             #direita
             if len(self.board.possibilidades[side*row+col-1]) == 1 or self.board.get_value(row, col-1) in voltas and len(self.board.possibilidades[side*row+col-1]) == 2:
                 if (len(self.board.possibilidades[side*row+col-1]) == 1 and self.board.get_value(row,col-1) not in pointright) or (self.board.get_value(row, col-1) in voltas and "VB" not in self.board.possibilidades[side*row+col-1] and "VD" not in self.board.possibilidades[side*row+col-1]):
@@ -520,7 +524,7 @@ class PipeMania(Problem):
                 elif "BD" in self.board.possibilidades[side*row+col] and ((len(self.board.possibilidades[side*row+col-1]) == 1 and self.board.get_value(row,col-1) in pointright) or (self.board.get_value(row, col-1) in voltas and "VC" not in self.board.possibilidades[side*row+col-1] and "VE" not in self.board.possibilidades[side*row+col-1])):
                     self.board.possibilidades[side*row+col].remove("BD")
                     if self.board.get_value(row,col) == "BD":
-                        self.board.change_piece(row,col,self.board.possibilidades[0])
+                        self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
         elif self.board.get_value(row,col) in ligacoes:
             #baixo
             if len(self.board.possibilidades[side*(row+1)+col]) == 1 or (self.board.get_value(row+1, col) in voltas and len(self.board.possibilidades[side*(row+1)+col]) == 2):
@@ -571,7 +575,7 @@ class PipeMania(Problem):
                     if "VE" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VE")
                     if self.board.get_value(row,col) in ["VB", "VE"]:
-                        self.board.change_piece(row,col,self.board.possibilidades[0])
+                        self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
                     changes = True
                 elif (len(self.board.possibilidades[side*(row-1)+col]) == 1 and self.board.get_value(row-1,col) not in pointdown) or (self.board.get_value(row-1, col) in voltas and "VB" not in self.board.possibilidades[side*(row-1)+col] and "VE" not in self.board.possibilidades[side*(row-1)+col]):
                     if "VC" in self.board.possibilidades[side*row+col]:
@@ -579,7 +583,7 @@ class PipeMania(Problem):
                     if "VD" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VD")
                     if self.board.get_value(row,col) in ["VC", "VD"]:
-                        self.board.change_piece(row,col,self.board.possibilidades[0])
+                        self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
                     changes = True
             # baixo
             if row != last and (len(self.board.possibilidades[side*(row+1)+col]) == 1 or self.board.get_value(row+1, col) in voltas and len(self.board.possibilidades[side*(row+1)+col]) == 2):
@@ -589,7 +593,7 @@ class PipeMania(Problem):
                     if "VD" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VD")
                     if self.board.get_value(row,col) in ["VC", "VD"]:
-                        self.board.change_piece(row,col,self.board.possibilidades[0])
+                        self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
                     changes = True
                 elif (len(self.board.possibilidades[side*(row+1)+col]) == 1 and self.board.get_value(row+1,col) not in pointup) or (self.board.get_value(row+1, col) in voltas and "VC" not in self.board.possibilidades[side*(row+1)+col] and "VD" not in self.board.possibilidades[side*(row+1)+col]):
                     if "VB" in self.board.possibilidades[side*row+col]:
@@ -597,7 +601,7 @@ class PipeMania(Problem):
                     if "VE" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VE")
                     if self.board.get_value(row,col) in ["VB", "VE"]:
-                        self.board.change_piece(row,col,self.board.possibilidades[0])
+                        self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
                     changes = True
             # esquerda
             if col != 0 and (len(self.board.possibilidades[side*row+col-1]) == 1 or self.board.get_value(row, col-1) in voltas and len(self.board.possibilidades[side*row+col-1]) == 2):
@@ -607,7 +611,7 @@ class PipeMania(Problem):
                     if "VD" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VD")
                     if self.board.get_value(row,col) in ["VB", "VD"]:
-                        self.board.change_piece(row,col,self.board.possibilidades[0])
+                        self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
                     changes = True
                 elif (len(self.board.possibilidades[side*row+col-1]) == 1 and self.board.get_value(row,col-1) not in pointright) or (self.board.get_value(row, col-1) in voltas and "VB" not in self.board.possibilidades[side*row+col-1] and "VD" not in self.board.possibilidades[side*row+col-1]):
                     if "VC" in self.board.possibilidades[side*row+col]:
@@ -615,7 +619,7 @@ class PipeMania(Problem):
                     if "VE" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VE")
                     if self.board.get_value(row,col) in ["VC", "VE"]:
-                        self.board.change_piece(row,col,self.board.possibilidades[0])
+                        self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
                     changes = True
             # direita
             if col != last and (len(self.board.possibilidades[side*row+col+1]) == 1 or self.board.get_value(row, col+1) in voltas and len(self.board.possibilidades[side*row+col+1]) == 2):
@@ -625,7 +629,7 @@ class PipeMania(Problem):
                     if "VE" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VE")
                     if self.board.get_value(row,col) in ["VC", "VE"]:
-                        self.board.change_piece(row,col,self.board.possibilidades[0])
+                        self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
                     changes = True
                 elif (len(self.board.possibilidades[side*row+col+1]) == 1 and self.board.get_value(row,col+1) not in pointleft) or (self.board.get_value(row, col+1) in voltas and "VC" not in self.board.possibilidades[side*row+col+1] and "VE" not in self.board.possibilidades[side*row+col+1]):
                     if "VB" in self.board.possibilidades[side*row+col]:
@@ -633,7 +637,7 @@ class PipeMania(Problem):
                     if "VD" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VD")
                     if self.board.get_value(row,col) in ["VB", "VD"]:
-                        self.board.change_piece(row,col,self.board.possibilidades[0])
+                        self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
                     changes = True
         return changes
 
@@ -661,6 +665,7 @@ class PipeMania(Problem):
     def infer(self):
         layer = 0
         while layer < int(np.ceil(np.sqrt(self.board.tamanho)/2)):
+            print(self.board.show())
             if self.infer_layer(layer) and layer != 0:
                 layer -= 1
             else:
