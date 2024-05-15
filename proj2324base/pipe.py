@@ -20,23 +20,6 @@ from search import (
 )
 
 
-class PipeManiaState:
-    state_id = 0
-
-    def __init__(self, board):
-        self.board = board
-        self.id = PipeManiaState.state_id
-        PipeManiaState.state_id += 1
-
-
-    def __lt__(self, other):
-        return self.id < other.id
-
-    def get_value(self, row: int, col: int) -> str:
-        """Devolve o valor na respetiva posição do tabuleiro."""
-        return self.board[int(np.sqrt(self.board.tamanho)*row+col)]
-    
-    # TODO: outros metodos da classe
 
 
 class Board:
@@ -99,73 +82,22 @@ class Board:
     # TODO: outros metodos da classe
 
 
-class PipeMania(Problem):
-    def __init__(self, board: Board):
-        """O construtor especifica o estado inicial."""
-        self.board=board
+class PipeManiaState:
+    state_id = 0
 
-    def actions(self, state: PipeManiaState):
-        """Retorna uma lista de ações que podem ser executadas a
-        partir do estado passado como argumento."""
-        # TODO
-        pass
+    def __init__(self, board):
+        self.board = board
+        self.id = PipeManiaState.state_id
+        PipeManiaState.state_id += 1
 
-    def result(self, state: PipeManiaState, action):
-        """Retorna o estado resultante de executar a 'action' sobre
-        'state' passado como argumento. A ação a executar deve ser uma
-        das presentes na lista obtida pela execução de
-        self.actions(state)."""
-        f=("FC","FD","FB","FE")
-        b=("BC","BD","BB","BE")
-        v=("VC","VD","VB","VE")
-        l=("LH","LV")
-        new_state=PipeManiaState(Board(state.board.get_board().copy()))
-        piece=new_state.board.get_value(action[0],action[1])
-        if (piece in f):
-            if (action[2]==True):
-                if(f.index(piece)!=3):
-                    new_state.board.change_piece(action[0],action[1],f[f.index(piece)+1])
-                else:
-                    new_state.board.change_piece(action[0],action[1],f[0])
-            else:
-                if(f.index(piece)!=0):
-                    new_state.board.change_piece(action[0],action[1],f[f.index(piece)-1])
-                else:
-                    new_state.board.change_piece(action[0],action[1],f[3])
 
-        elif(piece in b):
-            if (action[2]==True):
-                if(b.index(piece)!=3):
-                    new_state.board.change_piece(action[0],action[1],b[b.index(piece)+1])
-                else:
-                    new_state.board.change_piece(action[0],action[1],b[0])
-            else:
-                if(b.index(piece)!=0):
-                    new_state.board.change_piece(action[0],action[1],b[b.index(piece)-1])
-                else:
-                    new_state.board.change_piece(action[0],action[1],b[3])
-                
-        elif(piece in v):
-            if (action[2]==True):
-                if(v.index(piece)!=3):
-                    new_state.board.change_piece(action[0],action[1],v[v.index(piece)+1])
-                else:
-                    new_state.board.change_piece(action[0],action[1],v[0])
-            else:
-                if(v.index(piece)!=0):
-                    new_state.board.change_piece(action[0],action[1],v[v.index(piece)-1])
-                else:
-                    new_state.board.change_piece(action[0],action[1],v[3])
-                
-        else:
-            if(l.index(piece)==0):
-                new_state.board.change_piece(action[0],action[1],l[1])
-            else:
-                new_state.board.change_piece(action[0],action[1],l[0])
-            
-                
-        return new_state
+    def __lt__(self, other):
+        return self.id < other.id
 
+    def get_value(self, row: int, col: int) -> str:
+        """Devolve o valor na respetiva posição do tabuleiro."""
+        return self.board[int(np.sqrt(self.board.tamanho)*row+col)]
+    
     def DFS_visit(self, board: Board, row, col, visit):
         position = int(np.sqrt(board.tamanho)*row+col)
 
@@ -317,6 +249,80 @@ class PipeMania(Problem):
         
         visit[position] = 2
         return True
+    
+    # TODO: outros metodos da classe
+
+
+class PipeMania(Problem):
+    def __init__(self, board: Board):
+        """O construtor especifica o estado inicial."""
+        self.board=board
+        self.initial = PipeManiaState(Board(board.get_board().copy()))
+
+    def actions(self, state: PipeManiaState):
+        """Retorna uma lista de ações que podem ser executadas a
+        partir do estado passado como argumento."""
+        lista=[]
+        for i in range(self.board.tamanho):
+            lista.append((i//int(np.sqrt(self.board.tamanho)),i%int(np.sqrt(self.board.tamanho)),True))
+            lista.append((i//int(np.sqrt(self.board.tamanho)),i%int(np.sqrt(self.board.tamanho)),False))
+        return lista
+
+    def result(self, state: PipeManiaState, action):
+        """Retorna o estado resultante de executar a 'action' sobre
+        'state' passado como argumento. A ação a executar deve ser uma
+        das presentes na lista obtida pela execução de
+        self.actions(state)."""
+        f=("FC","FD","FB","FE")
+        b=("BC","BD","BB","BE")
+        v=("VC","VD","VB","VE")
+        l=("LH","LV")
+        new_state=PipeManiaState(Board(state.board.get_board().copy()))
+        piece=new_state.board.get_value(action[0],action[1])
+        if (piece in f):
+            if (action[2]==True):
+                if(f.index(piece)!=3):
+                    new_state.board.change_piece(action[0],action[1],f[f.index(piece)+1])
+                else:
+                    new_state.board.change_piece(action[0],action[1],f[0])
+            else:
+                if(f.index(piece)!=0):
+                    new_state.board.change_piece(action[0],action[1],f[f.index(piece)-1])
+                else:
+                    new_state.board.change_piece(action[0],action[1],f[3])
+
+        elif(piece in b):
+            if (action[2]==True):
+                if(b.index(piece)!=3):
+                    new_state.board.change_piece(action[0],action[1],b[b.index(piece)+1])
+                else:
+                    new_state.board.change_piece(action[0],action[1],b[0])
+            else:
+                if(b.index(piece)!=0):
+                    new_state.board.change_piece(action[0],action[1],b[b.index(piece)-1])
+                else:
+                    new_state.board.change_piece(action[0],action[1],b[3])
+                
+        elif(piece in v):
+            if (action[2]==True):
+                if(v.index(piece)!=3):
+                    new_state.board.change_piece(action[0],action[1],v[v.index(piece)+1])
+                else:
+                    new_state.board.change_piece(action[0],action[1],v[0])
+            else:
+                if(v.index(piece)!=0):
+                    new_state.board.change_piece(action[0],action[1],v[v.index(piece)-1])
+                else:
+                    new_state.board.change_piece(action[0],action[1],v[3])
+                
+        else:
+            if(l.index(piece)==0):
+                new_state.board.change_piece(action[0],action[1],l[1])
+            else:
+                new_state.board.change_piece(action[0],action[1],l[0])
+            
+                
+        return new_state
 
     def goal_test(self, state: PipeManiaState):
         """Retorna True se e só se o estado passado como argumento é
@@ -325,7 +331,7 @@ class PipeMania(Problem):
         visit = []
         for v in state.board.get_board():
             visit.append(0) # 0: não visitado, 1: visitado, 2: fechado
-        self.DFS_visit(state.board, 0, 0, visit)
+        state.DFS_visit(state.board, 0, 0, visit)
         for v in visit:
             if v != 2:
                 return False
@@ -343,24 +349,11 @@ if __name__ == "__main__":
     board = Board.parse_instance()
     # Criar uma instância de PipeMania:
     problem = PipeMania(board)
-    # Criar um estado com a configuração inicial:
-    s0 = PipeManiaState(board)
-    # Aplicar as ações que resolvem a instância
-    s1 = problem.result(s0, (0, 1, True))
-    s2 = problem.result(s1, (0, 1, True))
-    s3 = problem.result(s2, (0, 2, True))
-    s4 = problem.result(s3, (0, 2, True))
-    s5 = problem.result(s4, (1, 0, True))
-    s6 = problem.result(s5, (1, 1, True))
-    s7 = problem.result(s6, (2, 0, False)) # anti-clockwise (exemplo de uso)
-    s8 = problem.result(s7, (2, 0, False)) # anti-clockwise (exemplo de uso)
-    s9 = problem.result(s8, (2, 1, True))
-    s10 = problem.result(s9, (2, 1, True))
-    s11 = problem.result(s10, (2, 2, True))
-    
-    print("Is goal?", problem.goal_test(s5))
-    print("Is goal?", problem.goal_test(s11))
-    print("Solution:\n", s11.board.show(), sep="")
+    # Obter o nó solução usando a procura em profundidade:
+    goal_node = depth_first_tree_search(problem)
+    # Verificar se foi atingida a solução
+    print("Is goal?", problem.goal_test(goal_node.state))
+    print("Solution:\n", goal_node.state.board.print(), sep="")
 
     # TODO:
     # Ler o ficheiro do standard input,
