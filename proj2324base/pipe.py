@@ -79,15 +79,17 @@ class Board:
         tamanho=self.tamanho
         lado=np.sqrt(tamanho)
         line=-1
+        result = ""
         for i in range(tamanho):
             if (i%lado==0):
                 line+=1
                 if(i!=0):
-                    print("\n",end="")
+                    result += "\n"
             if (i%lado == lado-1):
-                print(self.get_value(line,i%lado),end="")
+                result += self.get_value(line,i%lado)
             else:
-                print(self.get_value(line,i%lado)+"\t",end="")
+                result += self.get_value(line,i%lado)+"\ t"
+        return result
 
     def change_piece(self, row: int, col: int,change ):
         self.board[int(np.sqrt(self.tamanho)*row+col)]=change
@@ -164,12 +166,170 @@ class PipeMania(Problem):
                 
         return new_state
 
+    def DFS_visit(self, board: Board, row, col, visit):
+        position = int(np.sqrt(board.tamanho)*row+col)
+
+        pointdown = ["FB", "BB", "BE", "BD", "VB", "VE", "LV"]
+        pointup = ["FC", "BC", "BE", "BD", "VD", "VC", "LV"]
+        pointleft = ["FE", "BB", "BE", "BC", "VC", "VE", "LH"]
+        pointright = ["FD", "BB", "BD", "BC", "VB", "VD", "LH"]
+        last = int(np.sqrt(board.tamanho))-1
+        
+        visit[position] = 1
+        
+        if board.get_value(row, col) == "FC":
+            if row == 0 or board.get_value(row-1, col) not in pointdown:
+                return False
+            elif visit[int(np.sqrt(board.tamanho)*(row-1)+col)] == 0:
+                if not self.DFS_visit(board, row-1, col, visit):
+                    return False
+        elif board.get_value(row, col) == "FB":
+            if row == last or board.get_value(row+1, col) not in pointup:
+                return False
+            elif visit[int(np.sqrt(board.tamanho)*(row+1)+col)] == 0:
+                if not self.DFS_visit(board, row+1, col, visit):
+                    return False
+        elif board.get_value(row, col) == "FE":
+            if col == 0 or board.get_value(row, col-1) not in pointright:
+                return False
+            elif visit[int(np.sqrt(board.tamanho)*(row)+col-1)] == 0:
+                if not self.DFS_visit(board, row, col-1, visit):
+                    return False
+        elif board.get_value(row, col) == "FD":
+            if col == last or board.get_value(row, col+1) not in pointleft:
+                return False
+            elif visit[int(np.sqrt(board.tamanho)*(row)+col+1)] == 0:
+                if not self.DFS_visit(board, row, col+1, visit):
+                    return False
+        elif board.get_value(row, col) == "BC":
+            if col == last or row == 0 or col == 0 or board.get_value(row-1, col) not in pointdown or board.get_value(row, col-1) not in pointright or board.get_value(row, col+1) not in pointleft:
+                return False
+            else:
+                if visit[int(np.sqrt(board.tamanho)*(row-1)+col)] == 0:
+                    if not self.DFS_visit(board, row-1, col, visit):
+                        return False
+                if visit[int(np.sqrt(board.tamanho)*row+col-1)] == 0:
+                    if not self.DFS_visit(board, row, col-1, visit):
+                        return False
+                if visit[int(np.sqrt(board.tamanho)*row+col+1)] == 0:
+                    if not self.DFS_visit(board, row, col+1, visit):
+                        return False
+        elif board.get_value(row, col) == "BB":
+            if row == last or col == last or col == 0 or board.get_value(row+1, col) not in pointup or board.get_value(row, col-1) not in pointright or board.get_value(row, col+1) not in pointleft:
+                return False
+            else:
+                if visit[int(np.sqrt(board.tamanho)*(row+1)+col)] == 0:
+                    if not self.DFS_visit(board, row+1, col, visit):
+                        return False
+                if visit[int(np.sqrt(board.tamanho)*row+col-1)] == 0:
+                    if not self.DFS_visit(board, row, col-1, visit):
+                        return False
+                if visit[int(np.sqrt(board.tamanho)*row+col+1)] == 0:
+                    if not self.DFS_visit(board, row, col+1, visit):
+                        return False
+        elif board.get_value(row, col) == "BE":
+            if row == last or row == 0 or col == 0 or board.get_value(row-1, col) not in pointdown or board.get_value(row+1, col) not in pointup or board.get_value(row, col-1) not in pointright:
+                return False
+            else:
+                if visit[int(np.sqrt(board.tamanho)*(row-1)+col)] == 0:
+                    if not self.DFS_visit(board, row-1, col, visit):
+                        return False
+                if visit[int(np.sqrt(board.tamanho)*(row+1)+col)] == 0:
+                    if not self.DFS_visit(board, row+1, col, visit):
+                        return False
+                if visit[int(np.sqrt(board.tamanho)*row+col-1)] == 0:
+                    if not self.DFS_visit(board, row, col-1, visit):
+                        return False
+        elif board.get_value(row, col) == "BD":
+            if row == last or row == 0 or col == last or board.get_value(row-1, col) not in pointdown or board.get_value(row, col+1) not in pointleft or board.get_value(row+1, col) not in pointup:
+                return False
+            else:
+                if visit[int(np.sqrt(board.tamanho)*(row-1)+col)] == 0:
+                    if not self.DFS_visit(board, row-1, col, visit):
+                        return False
+                if visit[int(np.sqrt(board.tamanho)*(row+1)+col)] == 0:
+                    if not self.DFS_visit(board, row+1, col, visit):
+                        return False
+                if visit[int(np.sqrt(board.tamanho)*row+col+1)] == 0:
+                    if not self.DFS_visit(board, row, col+1, visit):
+                        return False
+        elif board.get_value(row, col) == "VC":
+            if row == 0 or col == 0 or board.get_value(row-1, col) not in pointdown or board.get_value(row, col-1) not in pointright:
+                return False
+            else:
+                if visit[int(np.sqrt(board.tamanho)*(row-1)+col)] == 0:
+                    if not self.DFS_visit(board, row-1, col, visit):
+                        return False
+                if visit[int(np.sqrt(board.tamanho)*row+col-1)] == 0:
+                    if not self.DFS_visit(board, row, col-1, visit):
+                        return False
+        elif board.get_value(row, col) == "VB":
+            if row == last or col == last or board.get_value(row+1, col) not in pointup or board.get_value(row, col+1) not in pointleft:
+                return False
+            else:
+                if visit[int(np.sqrt(board.tamanho)*(row+1)+col)] == 0:
+                    if not self.DFS_visit(board, row+1, col, visit):
+                        return False
+                if visit[int(np.sqrt(board.tamanho)*row+col+1)] == 0:
+                    if not self.DFS_visit(board, row, col+1, visit):
+                        return False
+        elif board.get_value(row, col) == "VE":
+            if row == last or col == 0 or board.get_value(row+1, col) not in pointup or board.get_value(row, col-1) not in pointright:
+                return False
+            else:
+                if visit[int(np.sqrt(board.tamanho)*(row+1)+col)] == 0:
+                    if not self.DFS_visit(board, row+1, col, visit):
+                        return False
+                if visit[int(np.sqrt(board.tamanho)*row+col-1)] == 0:
+                    if not self.DFS_visit(board, row, col-1, visit):
+                        return False
+        elif board.get_value(row, col) == "VD":
+            if row == 0 or col == last or board.get_value(row-1, col) not in pointdown or board.get_value(row, col+1) not in pointleft:
+                return False
+            else:
+                if visit[int(np.sqrt(board.tamanho)*(row-1)+col)] == 0:
+                    if not self.DFS_visit(board, row-1, col, visit):
+                        return False
+                if visit[int(np.sqrt(board.tamanho)*row+col+1)] == 0:
+                    if not self.DFS_visit(board, row, col+1, visit):
+                        return False
+        elif board.get_value(row, col) == "LV":
+            if row == 0 or row == last or board.get_value(row-1, col) not in pointdown or board.get_value(row+1, col) not in pointup:
+                return False
+            else:
+                if visit[int(np.sqrt(board.tamanho)*(row-1)+col)] == 0:
+                    if not self.DFS_visit(board, row-1, col, visit):
+                        return False
+                if visit[int(np.sqrt(board.tamanho)*(row+1)+col)] == 0:
+                    if not self.DFS_visit(board, row+1, col, visit):
+                        return False
+        elif board.get_value(row, col) == "LH":
+            if col == 0 or col == last or board.get_value(row, col-1) not in pointright or board.get_value(row, col+1) not in pointleft:
+                return False
+            else:
+                if visit[int(np.sqrt(board.tamanho)*row+col-1)] == 0:
+                    if not self.DFS_visit(board, row, col-1, visit):
+                        return False
+                if visit[int(np.sqrt(board.tamanho)*row+col+1)] == 0:
+                    if not self.DFS_visit(board, row, col+1, visit):
+                        return False
+        
+        
+        visit[position] = 2
+        return True
+
     def goal_test(self, state: PipeManiaState):
         """Retorna True se e só se o estado passado como argumento é
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas de acordo com as regras do problema."""
-        # TODO
-        pass
+        visit = []
+        for v in state.board.get_board():
+            visit.append(0) # 0: não visitado, 1: visitado, 2: fechado
+        self.DFS_visit(state.board, 0, 0, visit)
+        for v in visit:
+            if v != 2:
+                return False
+        return True
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
@@ -197,8 +357,10 @@ if __name__ == "__main__":
     s9 = problem.result(s8, (2, 1, True))
     s10 = problem.result(s9, (2, 1, True))
     s11 = problem.result(s10, (2, 2, True))
-    s1.board.show()
-    s9.board.show()
+    
+    print("Is goal?", problem.goal_test(s5))
+    print("Is goal?", problem.goal_test(s11))
+    print("Solution:\n", s11.board.show(), sep="")
 
     # TODO:
     # Ler o ficheiro do standard input,
