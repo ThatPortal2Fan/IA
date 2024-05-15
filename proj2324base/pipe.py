@@ -15,7 +15,6 @@ from search import (
     astar_search,
     breadth_first_tree_search,
     depth_first_tree_search,
-    depth_first_graph_search,
     greedy_search,
     recursive_best_first_search,
 )
