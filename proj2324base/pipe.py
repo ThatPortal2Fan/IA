@@ -33,7 +33,7 @@ ligacoes=["LH","LV"]
 class Board:
     """Representação interna de um tabuleiro de PipeMania."""
     
-    def __init__(self, board ):
+    def __init__(self, board):
         self.board = board
         self.tamanho = len(board)
         self.possibilidades = [[]]*len(board)
@@ -132,10 +132,11 @@ class Board:
 class PipeManiaState:
     state_id = 0
 
-    def __init__(self, board):
+    def __init__(self, board, possibilidades):
         self.board = board
         self.id = PipeManiaState.state_id
         PipeManiaState.state_id += 1
+        self.board.possibilidades = possibilidades
 
 
     def __lt__(self, other):
@@ -300,18 +301,19 @@ class PipeMania(Problem):
     def __init__(self, board: Board):
         """O construtor especifica o estado inicial."""
         self.board=board
-        self.initial = PipeManiaState(Board(board.get_board().copy()))
+        self.initial = PipeManiaState(Board(board.get_board().copy()), [[]]*len(board.get_board()))
 
     def actions(self, state: PipeManiaState): #mudar actions para tuplo com row, col e possibilidades para a peça
         """Retorna uma lista de ações que podem ser executadas a
         partir do estado passado como argumento."""
         lista=[]
         for v in range(self.board.tamanho):
-            if not self.board.blocked[v]:
+            if len(state.board.possibilidades[v])>1:
                 row = v//int(np.sqrt(self.board.tamanho))
                 col = v%int(np.sqrt(self.board.tamanho))
-                lista.append((row,col,True))
-                lista.append((row,col,False))
+                for i in state.board.possibilidades[v]:
+                    if i != state.board.get_value(row,col):
+                        lista.append((row,col,i))
         return lista
 
     def result(self, state: PipeManiaState, action):
@@ -319,51 +321,8 @@ class PipeMania(Problem):
         'state' passado como argumento. A ação a executar deve ser uma
         das presentes na lista obtida pela execução de
         self.actions(state)."""
-        new_state=PipeManiaState(Board(state.board.get_board().copy()))
-        piece=new_state.board.get_value(action[0],action[1])
-        if (piece in fontes):
-            if (action[2]==True):
-                if(fontes.index(piece)!=3):
-                    new_state.board.change_piece(action[0],action[1],fontes[fontes.index(piece)+1])
-                else:
-                    new_state.board.change_piece(action[0],action[1],fontes[0])
-            else:
-                if(fontes.index(piece)!=0):
-                    new_state.board.change_piece(action[0],action[1],fontes[fontes.index(piece)-1])
-                else:
-                    new_state.board.change_piece(action[0],action[1],fontes[3])
-
-        elif(piece in bifurcacoes):
-            if (action[2]==True):
-                if(bifurcacoes.index(piece)!=3):
-                    new_state.board.change_piece(action[0],action[1],bifurcacoes[bifurcacoes.index(piece)+1])
-                else:
-                    new_state.board.change_piece(action[0],action[1],bifurcacoes[0])
-            else:
-                if(bifurcacoes.index(piece)!=0):
-                    new_state.board.change_piece(action[0],action[1],bifurcacoes[bifurcacoes.index(piece)-1])
-                else:
-                    new_state.board.change_piece(action[0],action[1],bifurcacoes[3])
-                
-        elif(piece in voltas):
-            if (action[2]==True):
-                if(voltas.index(piece)!=3):
-                    new_state.board.change_piece(action[0],action[1],voltas[voltas.index(piece)+1])
-                else:
-                    new_state.board.change_piece(action[0],action[1],voltas[0])
-            else:
-                if(voltas.index(piece)!=0):
-                    new_state.board.change_piece(action[0],action[1],voltas[voltas.index(piece)-1])
-                else:
-                    new_state.board.change_piece(action[0],action[1],voltas[3])
-                
-        else:
-            if(ligacoes.index(piece)==0):
-                new_state.board.change_piece(action[0],action[1],ligacoes[1])
-            else:
-                new_state.board.change_piece(action[0],action[1],ligacoes[0])
-            
-                
+        new_state=PipeManiaState(Board(state.board.get_board().copy()), state.board.possibilidades.copy())
+        new_state.board.change_piece(action[0],action[1],action[2])
         return new_state
 
     def goal_test(self, state: PipeManiaState):
@@ -711,7 +670,7 @@ class PipeMania(Problem):
                 layer -= 1
             else:
                 layer += 1
-
+        self.initial = PipeManiaState(Board(self.board.get_board().copy()), self.board.possibilidades)
 
 
     def h(self, node: Node):
@@ -729,13 +688,18 @@ if __name__ == "__main__":
     problem.define_possibilities()
     problem.fix_sides()
     problem.infer()
-    print(problem.board.show())
     # Obter o nó solução usando a procura em profundidade:
-    #goal_node = breadth_first_tree_search(problem)
+    if not problem.goal_test(PipeManiaState(problem.board, problem.board.possibilidades)):
+        goal_node = breadth_first_tree_search(problem)
+        print(goal_node.state.board.show())
+        #print("Is goal?", problem.goal_test(goal_node.state))
+    else:
+        print(problem.board.show())
+    
     # Verificar se foi atingida a solução
     #print("Is goal?", problem.goal_test(goal_node.state))
-    #print("Solution:\n", goal_node.state.board.print(), sep="")
     #print(problem.goal_test(PipeManiaState(problem.board)))
+    #print(goal_node.state.board.show())
 
     # TODO:
     # Ler o ficheiro do standard input,
