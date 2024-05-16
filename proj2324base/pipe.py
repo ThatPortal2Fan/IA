@@ -72,8 +72,6 @@ class Board:
         lado=np.sqrt(tamanho)
         line=-1
         result = ""
-        print(result)
-        print(type(result))
         for i in range(tamanho):
             if (i%lado==0):
                 line+=1
@@ -96,24 +94,39 @@ class Board:
         lado=int(np.sqrt(self.tamanho))
         result = ""
         for i in range(lado):
-            for k in range(3):
-                for j in range(lado):
-                    if k==0 and self.get_value(i,j) in pointup:
-                        result += " ^ "
-                    elif k==1:
-                        if self.get_value(i,j) in pointleft and self.get_value(i,j) in pointright:
-                            result += "< >"
-                        elif self.get_value(i,j) in pointleft:
-                            result += "<  "
-                        elif self.get_value(i,j) in pointright:
-                            result += "  >"
-                        else:
-                            result += "   "
-                    elif k==2 and self.get_value(i,j) in pointdown:
-                        result += " v "
-                    else:
-                        result += "   "
-                result+="\n"
+            for j in range(lado):
+                if len(self.possibilidades[lado*i+j]) == 1:
+                    if self.get_value(i,j) == "FC":
+                        result += u'\u2568'
+                    elif self.get_value(i,j) == "FB":
+                        result += u'\u2565'
+                    elif self.get_value(i,j) == "FE":
+                        result += u'\u2561'
+                    elif self.get_value(i,j) == "FD":
+                        result += u'\u255e'
+                    elif self.get_value(i,j) == "BC":
+                        result += u'\u2569'
+                    elif self.get_value(i,j) == "BB":
+                        result += u'\u2566'
+                    elif self.get_value(i,j) == "BE":
+                        result += u'\u2563'
+                    elif self.get_value(i,j) == "BD":
+                        result += u'\u2560'
+                    elif self.get_value(i,j) == "VC":
+                        result += u'\u255d'
+                    elif self.get_value(i,j) == "VB":
+                        result += u'\u2554'
+                    elif self.get_value(i,j) == "VE":
+                        result += u'\u2557'
+                    elif self.get_value(i,j) == "VD":
+                        result += u'\u255a'
+                    elif self.get_value(i,j) == "LH":
+                        result += u'\u2550'
+                    elif self.get_value(i,j) == "LV":
+                        result += u'\u2551'
+                else:
+                    result += " "
+            result+="\n"
         return result
 
 class PipeManiaState:
