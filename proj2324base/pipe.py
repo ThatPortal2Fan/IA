@@ -92,6 +92,29 @@ class Board:
         return self.board
     # TODO: outros metodos da classe
 
+    def draw(self):
+        lado=int(np.sqrt(self.tamanho))
+        result = ""
+        for i in range(lado):
+            for k in range(3):
+                for j in range(lado):
+                    if k==0 and self.get_value(i,j) in pointup:
+                        result += " ^ "
+                    elif k==1:
+                        if self.get_value(i,j) in pointleft and self.get_value(i,j) in pointright:
+                            result += "< >"
+                        elif self.get_value(i,j) in pointleft:
+                            result += "<  "
+                        elif self.get_value(i,j) in pointright:
+                            result += "  >"
+                        else:
+                            result += "   "
+                    elif k==2 and self.get_value(i,j) in pointdown:
+                        result += " v "
+                    else:
+                        result += "   "
+                result+="\n"
+        return result
 
 class PipeManiaState:
     state_id = 0
@@ -448,140 +471,168 @@ class PipeMania(Problem):
                 if (len(self.board.possibilidades[side*(row-1)+col]) == 1 and self.board.get_value(row-1,col) in pointdown) or (self.board.get_value(row-1, col) in voltas and "VC" not in self.board.possibilidades[side*(row-1)+col] and "VD" not in self.board.possibilidades[side*(row-1)+col]):
                     self.board.change_piece(row,col,"FC")
                     self.board.possibilidades[side*row+col] = ["FC"]
-                    changes = True
+                    print("bloqueou FC")
+                    return True
                 elif "FC" in self.board.possibilidades[side*row+col] and ((len(self.board.possibilidades[side*(row-1)+col]) == 1 and self.board.get_value(row-1,col) not in pointdown) or (self.board.get_value(row-1, col) in voltas and "VB" not in self.board.possibilidades[side*(row-1)+col] and "VE" not in self.board.possibilidades[side*(row-1)+col])):
                     self.board.possibilidades[side*row+col].remove("FC")
                     if self.board.get_value(row,col) == "FC":
                         self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
+                    print("removeu FC")
             # baixo
             if row != last and (len(self.board.possibilidades[side*(row+1)+col]) == 1 or self.board.get_value(row+1, col) in voltas and len(self.board.possibilidades[side*(row+1)+col]) == 2):
                 if (len(self.board.possibilidades[side*(row+1)+col]) == 1 and self.board.get_value(row+1,col) in pointup) or (self.board.get_value(row+1, col) in voltas and "VB" not in self.board.possibilidades[side*(row+1)+col] and "VE" not in self.board.possibilidades[side*(row+1)+col]):
                     self.board.change_piece(row,col,"FB")
                     self.board.possibilidades[side*row+col] = ["FB"]
-                    changes = True
+                    print("bloqueou FB")
+                    return True
                 elif "FB" in self.board.possibilidades[side*row+col] and ((len(self.board.possibilidades[side*(row+1)+col]) == 1 and self.board.get_value(row+1,col) not in pointup) or (self.board.get_value(row+1, col) in voltas and "VC" not in self.board.possibilidades[side*(row+1)+col] and "VD" not in self.board.possibilidades[side*(row+1)+col])):
                     self.board.possibilidades[side*row+col].remove("FB")
                     if self.board.get_value(row,col) == "FB":
                         self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
+                    print("removeu FB")
             # esquerda
             if col != 0 and (len(self.board.possibilidades[side*row+col-1]) == 1 or self.board.get_value(row, col-1) in voltas and len(self.board.possibilidades[side*row+col-1]) == 2):
                 if (len(self.board.possibilidades[side*row+col-1]) == 1 and self.board.get_value(row,col-1) in pointright) or (self.board.get_value(row, col-1) in voltas and "VC" not in self.board.possibilidades[side*row+col-1] and "VE" not in self.board.possibilidades[side*row+col-1]):
                     self.board.change_piece(row,col,"FE")
                     self.board.possibilidades[side*row+col] = ["FE"]
-                    changes = True
+                    print("bloqueou FE")
+                    return True
                 elif "FE" in self.board.possibilidades[side*row+col] and ((len(self.board.possibilidades[side*row+col-1]) == 1 and self.board.get_value(row,col-1) not in pointright) or (self.board.get_value(row, col-1) in voltas and "VB" not in self.board.possibilidades[side*row+col-1] and "VD" not in self.board.possibilidades[side*row+col-1])):
                     self.board.possibilidades[side*row+col].remove("FE")
                     if self.board.get_value(row,col) == "FE":
                         self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
+                    print("removeu FE")
             # direita
             if col != last and (len(self.board.possibilidades[side*row+col+1]) == 1 or self.board.get_value(row, col+1) in voltas and len(self.board.possibilidades[side*row+col+1]) == 2):
                 if (len(self.board.possibilidades[side*row+col+1]) == 1 and self.board.get_value(row,col+1) in pointleft) or (self.board.get_value(row, col+1) in voltas and "VD" not in self.board.possibilidades[side*row+col+1] and "VB" not in self.board.possibilidades[side*row+col+1]):
                     self.board.change_piece(row,col,"FD")
                     self.board.possibilidades[side*row+col] = ["FD"]
-                    changes = True
+                    print("bloqueou FD")
+                    return True
                 elif "FD" in self.board.possibilidades[side*row+col] and ((len(self.board.possibilidades[side*row+col+1]) == 1 and self.board.get_value(row,col+1) not in pointleft) or (self.board.get_value(row, col+1) in voltas and "VC" not in self.board.possibilidades[side*row+col+1] and "VE" not in self.board.possibilidades[side*row+col+1])):
                     self.board.possibilidades[side*row+col].remove("FD")
                     if self.board.get_value(row,col) == "FD":
                         print(len(self.board.possibilidades[side*row+col]))
                         self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
+                    print("removeu FD")
         elif self.board.get_value(row, col) in bifurcacoes:
             #cima
             if len(self.board.possibilidades[side*(row+1)+col]) == 1 or (self.board.get_value(row+1, col) in voltas and len(self.board.possibilidades[side*(row+1)+col]) == 2):
                 if (len(self.board.possibilidades[side*(row+1)+col]) == 1 and self.board.get_value(row+1,col) not in pointup) or (self.board.get_value(row+1, col) in voltas and "VC" not in self.board.possibilidades[side*(row+1)+col] and "VD" not in self.board.possibilidades[side*(row+1)+col]):
                     self.board.change_piece(row,col,"BC")
                     self.board.possibilidades[side*row+col] = ["BC"]
-                    changes = True
+                    print("bloqueou BC")
+                    return True
                 elif "BC" in self.board.possibilidades[side*row+col] and ((len(self.board.possibilidades[side*(row+1)+col]) == 1 and self.board.get_value(row+1,col) in pointup) or (self.board.get_value(row+1, col) in voltas and "VB" not in self.board.possibilidades[side*(row+1)+col] and "VE" not in self.board.possibilidades[side*(row+1)+col])):
                     self.board.possibilidades[side*row+col].remove("BC")
                     if self.board.get_value(row,col) == "BC":
                         self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
+                    print("removeu BC")
             #baixo
             if len(self.board.possibilidades[side*(row-1)+col]) == 1 or (self.board.get_value(row-1, col) in voltas and len(self.board.possibilidades[side*(row-1)+col]) == 2):
                 if (len(self.board.possibilidades[side*(row-1)+col]) == 1 and self.board.get_value(row-1,col) not in pointdown) or (self.board.get_value(row-1, col) in voltas and "VB" not in self.board.possibilidades[side*(row-1)+col] and "VE" not in self.board.possibilidades[side*(row-1)+col]):
                     self.board.change_piece(row,col,"BB")
                     self.board.possibilidades[side*row+col] = ["BB"]
-                    changes = True
+                    print("bloqueou BB")
+                    return True
                 elif "BB" in self.board.possibilidades[side*row+col] and ((len(self.board.possibilidades[side*(row-1)+col]) == 1 and self.board.get_value(row-1,col) in pointdown) or (self.board.get_value(row-1, col) in voltas and "VC" not in self.board.possibilidades[side*(row-1)+col] and "VD" not in self.board.possibilidades[side*(row-1)+col])):
                     self.board.possibilidades[side*row+col].remove("BB")
                     if self.board.get_value(row,col) == "BB":
                         self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
+                    print("removeu BB")
             #esquerda
             if len(self.board.possibilidades[side*row+col+1]) == 1 or self.board.get_value(row, col+1) in voltas and len(self.board.possibilidades[side*row+col+1]) == 2:
                 if (len(self.board.possibilidades[side*row+col+1]) == 1 and self.board.get_value(row,col+1) not in pointleft) or (self.board.get_value(row, col+1) in voltas and "VE" not in self.board.possibilidades[side*row+col+1] and "VC" not in self.board.possibilidades[side*row+col+1]):
                     self.board.change_piece(row,col,"BE")
                     self.board.possibilidades[side*row+col] = ["BE"]
-                    changes = True
+                    print("bloqueou BE")
+                    return True
                 elif "BE" in self.board.possibilidades[side*row+col] and ((len(self.board.possibilidades[side*row+col+1]) == 1 and self.board.get_value(row,col+1) in pointleft) or (self.board.get_value(row, col+1) in voltas and "VB" not in self.board.possibilidades[side*row+col+1] and "VD" not in self.board.possibilidades[side*row+col+1])):
                     self.board.possibilidades[side*row+col].remove("BE")
                     if self.board.get_value(row,col) == "BE":
                         self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
+                    print("removeu BE")
             #direita
             if len(self.board.possibilidades[side*row+col-1]) == 1 or self.board.get_value(row, col-1) in voltas and len(self.board.possibilidades[side*row+col-1]) == 2:
                 if (len(self.board.possibilidades[side*row+col-1]) == 1 and self.board.get_value(row,col-1) not in pointright) or (self.board.get_value(row, col-1) in voltas and "VB" not in self.board.possibilidades[side*row+col-1] and "VD" not in self.board.possibilidades[side*row+col-1]):
                     self.board.change_piece(row,col,"BD")
                     self.board.possibilidades[side*row+col] = ["BD"]
-                    changes = True
+                    print("bloqueou BD")
+                    return True
                 elif "BD" in self.board.possibilidades[side*row+col] and ((len(self.board.possibilidades[side*row+col-1]) == 1 and self.board.get_value(row,col-1) in pointright) or (self.board.get_value(row, col-1) in voltas and "VC" not in self.board.possibilidades[side*row+col-1] and "VE" not in self.board.possibilidades[side*row+col-1])):
                     self.board.possibilidades[side*row+col].remove("BD")
                     if self.board.get_value(row,col) == "BD":
                         self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
+                    print("removeu BD")
         elif self.board.get_value(row,col) in ligacoes:
             #baixo
             if len(self.board.possibilidades[side*(row+1)+col]) == 1 or (self.board.get_value(row+1, col) in voltas and len(self.board.possibilidades[side*(row+1)+col]) == 2):
                 if (len(self.board.possibilidades[side*(row+1)+col]) == 1 and self.board.get_value(row+1,col) not in pointup) or (self.board.get_value(row+1, col) in voltas and "VC" not in self.board.possibilidades[side*(row+1)+col] and "VD" not in self.board.possibilidades[side*(row+1)+col]):
                     self.board.change_piece(row,col,"LH")
                     self.board.possibilidades[side*row+col] = ["LH"]
-                    changes = True
+                    print("bloqueou LH")
+                    return True
                 elif (len(self.board.possibilidades[side*(row+1)+col]) == 1 and self.board.get_value(row+1,col) in pointup) or (self.board.get_value(row+1, col) in voltas and "VB" not in self.board.possibilidades[side*(row+1)+col] and "VE" not in self.board.possibilidades[side*(row+1)+col]):
                     self.board.change_piece(row,col,"LV")
                     self.board.possibilidades[side*row+col] = ["LV"]
-                    changes = True
+                    print("bloqueou LV")
+                    return True
             #cima
             if len(self.board.possibilidades[side*(row-1)+col]) == 1 or (self.board.get_value(row-1, col) in voltas and len(self.board.possibilidades[side*(row-1)+col]) == 2):
                 if (len(self.board.possibilidades[side*(row-1)+col]) == 1 and self.board.get_value(row-1,col) not in pointdown) or (self.board.get_value(row-1, col) in voltas and "VB" not in self.board.possibilidades[side*(row-1)+col] and "VE" not in self.board.possibilidades[side*(row-1)+col]):
                     self.board.change_piece(row,col,"LH")
                     self.board.possibilidades[side*row+col] = ["LH"]
-                    changes = True
+                    print("bloqueou LH")
+                    return True
                 elif (len(self.board.possibilidades[side*(row-1)+col]) == 1 and self.board.get_value(row-1,col) in pointdown) or (self.board.get_value(row-1, col) in voltas and "VC" not in self.board.possibilidades[side*(row-1)+col] and "VD" not in self.board.possibilidades[side*(row-1)+col]):
                     self.board.change_piece(row,col,"LV")
                     self.board.possibilidades[side*row+col] = ["LV"]
-                    changes = True
+                    print("bloqueou LV")
+                    return True
             #direita
             if len(self.board.possibilidades[side*row+col+1]) == 1 or self.board.get_value(row, col+1) in voltas and len(self.board.possibilidades[side*row+col+1]) == 2:
                 if (len(self.board.possibilidades[side*row+col+1]) == 1 and self.board.get_value(row,col+1) not in pointleft) or (self.board.get_value(row, col+1) in voltas and "VE" not in self.board.possibilidades[side*row+col+1] and "VC" not in self.board.possibilidades[side*row+col+1]):
                     self.board.change_piece(row,col,"LV")
                     self.board.possibilidades[side*row+col] = ["LV"]
-                    changes = True
+                    print("bloqueou LV")
+                    return True
                 elif (len(self.board.possibilidades[side*row+col+1]) == 1 and self.board.get_value(row,col+1) in pointleft) or (self.board.get_value(row, col+1) in voltas and "VB" not in self.board.possibilidades[side*row+col+1] and "VD" not in self.board.possibilidades[side*row+col+1]):
                     self.board.change_piece(row,col,"LH")
                     self.board.possibilidades[side*row+col] = ["LH"]
-                    changes = True
+                    print("bloqueou LH")
+                    return True
             #esquerda
             if len(self.board.possibilidades[side*row+col-1]) == 1 or self.board.get_value(row, col-1) in voltas and len(self.board.possibilidades[side*row+col-1]) == 2:
                 if (len(self.board.possibilidades[side*row+col-1]) == 1 and self.board.get_value(row,col-1) not in pointright) or (self.board.get_value(row, col-1) in voltas and "VB" not in self.board.possibilidades[side*row+col-1] and "VD" not in self.board.possibilidades[side*row+col-1]):
                     self.board.change_piece(row,col,"LV")
                     self.board.possibilidades[side*row+col] = ["LV"]
-                    changes = True
+                    print("bloqueou LV")
+                    return True
                 elif (len(self.board.possibilidades[side*row+col-1]) == 1 and self.board.get_value(row,col-1) in pointright) or (self.board.get_value(row, col-1) in voltas and "VC" not in self.board.possibilidades[side*row+col-1] and "VE" not in self.board.possibilidades[side*row+col-1]):
                     self.board.change_piece(row,col,"LH")
                     self.board.possibilidades[side*row+col] = ["LH"]
-                    changes = True
+                    print("bloqueou LH")
+                    return True
         else: #voltas
             # cima
             if row != 0 and (len(self.board.possibilidades[side*(row-1)+col]) == 1 or (self.board.get_value(row-1, col) in voltas and len(self.board.possibilidades[side*(row-1)+col]) == 2)):
                 if (len(self.board.possibilidades[side*(row-1)+col]) == 1 and self.board.get_value(row-1,col) in pointdown) or (self.board.get_value(row-1, col) in voltas and "VC" not in self.board.possibilidades[side*(row-1)+col] and "VD" not in self.board.possibilidades[side*(row-1)+col]):
                     if "VB" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VB")
+                        print("removeu VB")
                     if "VE" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VE")
+                        print("removeu VE")
                     if self.board.get_value(row,col) in ["VB", "VE"]:
                         self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
                     changes = True
                 elif (len(self.board.possibilidades[side*(row-1)+col]) == 1 and self.board.get_value(row-1,col) not in pointdown) or (self.board.get_value(row-1, col) in voltas and "VB" not in self.board.possibilidades[side*(row-1)+col] and "VE" not in self.board.possibilidades[side*(row-1)+col]):
                     if "VC" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VC")
+                        print("removeu VC")
                     if "VD" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VD")
+                        print("removeu VD")
                     if self.board.get_value(row,col) in ["VC", "VD"]:
                         self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
                     changes = True
@@ -590,16 +641,20 @@ class PipeMania(Problem):
                 if (len(self.board.possibilidades[side*(row+1)+col]) == 1 and self.board.get_value(row+1,col) in pointup) or (self.board.get_value(row+1, col) in voltas and "VB" not in self.board.possibilidades[side*(row+1)+col] and "VE" not in self.board.possibilidades[side*(row+1)+col]):
                     if "VC" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VC")
+                        print("removeu VC")
                     if "VD" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VD")
+                        print("removeu VD")
                     if self.board.get_value(row,col) in ["VC", "VD"]:
                         self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
                     changes = True
                 elif (len(self.board.possibilidades[side*(row+1)+col]) == 1 and self.board.get_value(row+1,col) not in pointup) or (self.board.get_value(row+1, col) in voltas and "VC" not in self.board.possibilidades[side*(row+1)+col] and "VD" not in self.board.possibilidades[side*(row+1)+col]):
                     if "VB" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VB")
+                        print("removeu VB")
                     if "VE" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VE")
+                        print("removeu VE")
                     if self.board.get_value(row,col) in ["VB", "VE"]:
                         self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
                     changes = True
@@ -608,16 +663,20 @@ class PipeMania(Problem):
                 if (len(self.board.possibilidades[side*row+col-1]) == 1 and self.board.get_value(row,col-1) in pointright) or (self.board.get_value(row, col-1) in voltas and "VC" not in self.board.possibilidades[side*row+col-1] and "VE" not in self.board.possibilidades[side*row+col-1]):
                     if "VB" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VB")
+                        print("removeu VB")
                     if "VD" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VD")
+                        print("removeu VD")
                     if self.board.get_value(row,col) in ["VB", "VD"]:
                         self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
                     changes = True
                 elif (len(self.board.possibilidades[side*row+col-1]) == 1 and self.board.get_value(row,col-1) not in pointright) or (self.board.get_value(row, col-1) in voltas and "VB" not in self.board.possibilidades[side*row+col-1] and "VD" not in self.board.possibilidades[side*row+col-1]):
                     if "VC" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VC")
+                        print("removeu VC")
                     if "VE" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VE")
+                        print("removeu VE")
                     if self.board.get_value(row,col) in ["VC", "VE"]:
                         self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
                     changes = True
@@ -626,16 +685,20 @@ class PipeMania(Problem):
                 if (len(self.board.possibilidades[side*row+col+1]) == 1 and self.board.get_value(row,col+1) in pointleft) or (self.board.get_value(row, col+1) in voltas and "VD" not in self.board.possibilidades[side*row+col+1] and "VB" not in self.board.possibilidades[side*row+col+1]):
                     if "VC" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VC")
+                        print("removeu VC")
                     if "VE" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VE")
+                        print("removeu VE")
                     if self.board.get_value(row,col) in ["VC", "VE"]:
                         self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
                     changes = True
                 elif (len(self.board.possibilidades[side*row+col+1]) == 1 and self.board.get_value(row,col+1) not in pointleft) or (self.board.get_value(row, col+1) in voltas and "VC" not in self.board.possibilidades[side*row+col+1] and "VE" not in self.board.possibilidades[side*row+col+1]):
                     if "VB" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VB")
+                        print("removeu VB")
                     if "VD" in self.board.possibilidades[side*row+col]:
                         self.board.possibilidades[side*row+col].remove("VD")
+                        print("removeu VD")
                     if self.board.get_value(row,col) in ["VB", "VD"]:
                         self.board.change_piece(row,col,self.board.possibilidades[side*row+col][0])
                     changes = True
@@ -665,7 +728,7 @@ class PipeMania(Problem):
     def infer(self):
         layer = 0
         while layer < int(np.ceil(np.sqrt(self.board.tamanho)/2)):
-            print(self.board.show())
+            print(self.board.draw())
             if self.infer_layer(layer) and layer != 0:
                 layer -= 1
             else:
@@ -688,7 +751,7 @@ if __name__ == "__main__":
     problem.define_possibilities()
     problem.fix_sides()
     problem.infer()
-    print(problem.board.show())
+    print(problem.board.draw())
     # Obter o nó solução usando a procura em profundidade:
     #goal_node = breadth_first_tree_search(problem)
     # Verificar se foi atingida a solução
