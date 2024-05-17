@@ -10,13 +10,7 @@ import sys
 from sys import stdin
 from utils import np
 from search import (
-    Problem,
-    Node,
-    astar_search,
-    breadth_first_tree_search,
-    depth_first_tree_search,
-    greedy_search,
-    recursive_best_first_search,
+    Problem
 )
 
 pointdown = ["FB", "BB", "BE", "BD", "VB", "VE", "LV"]
@@ -29,6 +23,75 @@ bifurcacoes=["BC","BD","BB","BE"]
 voltas=["VC","VD","VB","VE"]
 ligacoes=["LH","LV"]
 
+
+class Node:
+    """A node in a search tree. Contains a pointer to the parent (the node
+    that this is a successor of) and to the actual state for this node. Note
+    that if a state is arrived at by two paths, then there are two nodes with
+    the same state. Also includes the action that got us to this state, and
+    the total path_cost (also known as g) to reach the node. Other functions
+    may add an f and h value; see best_first_graph_search and astar_search for
+    an explanation of how the f and h values are handled. You will not need to
+    subclass this class."""
+
+    def __init__(self, state, parent=None, action=None, path_cost=0):
+        """Create a search tree Node, derived from a parent by an action."""
+        self.state = state
+        self.parent = parent
+        self.action = action
+        self.path_cost = path_cost
+        self.depth = 0
+        if parent:
+            self.depth = parent.depth + 1
+
+    def __repr__(self):
+        return "<Node {}>".format(self.state)
+
+    def __lt__(self, node):
+        return self.state < node.state
+
+    def expand(self, problem,b):
+        """List the nodes reachable in one step from this node."""
+        actions = problem.actions(self.state,b)
+        lista = [[]]*len(actions)
+        i=0
+        for action in actions:
+            lista[i]=[self.child_node(problem, action),b]
+            i+=1
+        return lista
+
+    def child_node(self, problem, action):
+        """[Figure 3.10]"""
+        next_state = problem.result(self.state, action)
+        next_node = Node(next_state, self, action, problem.path_cost(self.path_cost, self.state, action, next_state))
+        return next_node
+
+    def solution(self):
+        """Return the sequence of actions to go from the root to this node."""
+        return [node.action for node in self.path()[1:]]
+
+    def path(self):
+        """Return a list of nodes forming the path from the root to this node."""
+        node, path_back = self, []
+        while node:
+            path_back.append(node)
+            node = node.parent
+        return list(reversed(path_back))
+
+    # We want for a queue of nodes in breadth_first_graph_search or
+    # astar_search to have no duplicated states, so we treat nodes
+    # with the same state as equal. [Problem: this may not be what you
+    # want in other contexts.]
+
+    def __eq__(self, other):
+        return isinstance(other, Node) and self.state == other.state
+
+    def __hash__(self):
+        # We use the hash value of the state
+        # stored in the node instead of the node
+        # object itself to quickly search a node
+        # with the same state in a Hash Table
+        return hash(self.state)
 
 class Board:
     """Representação interna de um tabuleiro de PipeMania."""
@@ -303,16 +366,18 @@ class PipeMania(Problem):
         self.board=board
         self.initial = PipeManiaState(Board(board.get_board().copy()), [[]]*len(board.get_board()))
 
-    def actions(self, state: PipeManiaState): #mudar actions para tuplo com row, col e possibilidades para a peça
+    def actions(self, state: PipeManiaState,b: int): #mudar actions para tuplo com row, col e possibilidades para a peça
         """Retorna uma lista de ações que podem ser executadas a
         partir do estado passado como argumento."""
         lista=[]
+        counter=-1
         for v in range(self.board.tamanho):
-            if len(state.board.possibilidades[v])>1:
+            if len(self.initial.board.possibilidades[v])>1:
+                counter+=1
                 row = v//int(np.sqrt(self.board.tamanho))
                 col = v%int(np.sqrt(self.board.tamanho))
-                for i in state.board.possibilidades[v]:
-                    if i != state.board.get_value(row,col):
+                if counter==b:
+                    for i in state.board.possibilidades[v]:
                         lista.append((row,col,i))
         
         return lista
@@ -329,7 +394,7 @@ class PipeMania(Problem):
             i+=1
         new_state=PipeManiaState(Board(state.board.get_board().copy()), new_possibilidades)
         new_state.board.change_piece(action[0],action[1],action[2])
-        new_state.board.possibilidades[int(np.sqrt(new_state.board.tamanho)*action[0]+action[1])].remove(state.board.get_value(action[0],action[1]))
+        new_state.board.possibilidades[int(np.sqrt(new_state.board.tamanho)*action[0]+action[1])]=[new_state.board.get_value(action[0],action[1])]
         return new_state
 
     def goal_test(self, state: PipeManiaState):
@@ -453,7 +518,7 @@ class PipeMania(Problem):
                     return True
                 elif "FC" in state.board.possibilidades[side*row+col] and ((len(state.board.possibilidades[side*(row-1)+col]) == 1 and state.board.get_value(row-1,col) not in pointdown) or (state.board.get_value(row-1, col) in voltas and "VB" not in state.board.possibilidades[side*(row-1)+col] and "VE" not in state.board.possibilidades[side*(row-1)+col])):
                     state.board.possibilidades[side*row+col].remove("FC")
-                    if state.board.get_value(row,col) == "FC":
+                    if state.board.get_value(row,col) == "FC" and len(state.board.possibilidades[side*row+col])>0:
                         state.board.change_piece(row,col,state.board.possibilidades[side*row+col][0])
             # baixo
             if row != last and (len(state.board.possibilidades[side*(row+1)+col]) == 1 or state.board.get_value(row+1, col) in voltas and len(state.board.possibilidades[side*(row+1)+col]) == 2):
@@ -463,7 +528,7 @@ class PipeMania(Problem):
                     return True
                 elif "FB" in state.board.possibilidades[side*row+col] and ((len(state.board.possibilidades[side*(row+1)+col]) == 1 and state.board.get_value(row+1,col) not in pointup) or (state.board.get_value(row+1, col) in voltas and "VC" not in state.board.possibilidades[side*(row+1)+col] and "VD" not in state.board.possibilidades[side*(row+1)+col])):
                     state.board.possibilidades[side*row+col].remove("FB")
-                    if state.board.get_value(row,col) == "FB":
+                    if state.board.get_value(row,col) == "FB" and len(state.board.possibilidades[side*row+col])>0:
                         state.board.change_piece(row,col,state.board.possibilidades[side*row+col][0])
             # esquerda
             if col != 0 and (len(state.board.possibilidades[side*row+col-1]) == 1 or state.board.get_value(row, col-1) in voltas and len(state.board.possibilidades[side*row+col-1]) == 2):
@@ -473,7 +538,7 @@ class PipeMania(Problem):
                     return True
                 elif "FE" in state.board.possibilidades[side*row+col] and ((len(state.board.possibilidades[side*row+col-1]) == 1 and state.board.get_value(row,col-1) not in pointright) or (state.board.get_value(row, col-1) in voltas and "VB" not in state.board.possibilidades[side*row+col-1] and "VD" not in state.board.possibilidades[side*row+col-1])):
                     state.board.possibilidades[side*row+col].remove("FE")
-                    if state.board.get_value(row,col) == "FE":
+                    if state.board.get_value(row,col) == "FE" and len(state.board.possibilidades[side*row+col])>0:
                         state.board.change_piece(row,col,state.board.possibilidades[side*row+col][0])
             # direita
             if col != last and (len(state.board.possibilidades[side*row+col+1]) == 1 or state.board.get_value(row, col+1) in voltas and len(state.board.possibilidades[side*row+col+1]) == 2):
@@ -483,7 +548,7 @@ class PipeMania(Problem):
                     return True
                 elif "FD" in state.board.possibilidades[side*row+col] and ((len(state.board.possibilidades[side*row+col+1]) == 1 and state.board.get_value(row,col+1) not in pointleft) or (state.board.get_value(row, col+1) in voltas and "VC" not in state.board.possibilidades[side*row+col+1] and "VE" not in state.board.possibilidades[side*row+col+1])):
                     state.board.possibilidades[side*row+col].remove("FD")
-                    if state.board.get_value(row,col) == "FD":
+                    if state.board.get_value(row,col) == "FD" and len(state.board.possibilidades[side*row+col])>0:
                         state.board.change_piece(row,col,state.board.possibilidades[side*row+col][0])
         elif state.board.get_value(row, col) in bifurcacoes:
             #cima
@@ -494,7 +559,7 @@ class PipeMania(Problem):
                     return True
                 elif "BC" in state.board.possibilidades[side*row+col] and ((len(state.board.possibilidades[side*(row+1)+col]) == 1 and state.board.get_value(row+1,col) in pointup) or (state.board.get_value(row+1, col) in voltas and "VB" not in state.board.possibilidades[side*(row+1)+col] and "VE" not in state.board.possibilidades[side*(row+1)+col])):
                     state.board.possibilidades[side*row+col].remove("BC")
-                    if state.board.get_value(row,col) == "BC":
+                    if state.board.get_value(row,col) == "BC" and len(state.board.possibilidades[side*row+col])>0:
                         state.board.change_piece(row,col,state.board.possibilidades[side*row+col][0])
             #baixo
             if len(state.board.possibilidades[side*(row-1)+col]) == 1 or (state.board.get_value(row-1, col) in voltas and len(state.board.possibilidades[side*(row-1)+col]) == 2):
@@ -504,7 +569,7 @@ class PipeMania(Problem):
                     return True
                 elif "BB" in state.board.possibilidades[side*row+col] and ((len(state.board.possibilidades[side*(row-1)+col]) == 1 and state.board.get_value(row-1,col) in pointdown) or (state.board.get_value(row-1, col) in voltas and "VC" not in state.board.possibilidades[side*(row-1)+col] and "VD" not in state.board.possibilidades[side*(row-1)+col])):
                     state.board.possibilidades[side*row+col].remove("BB")
-                    if state.board.get_value(row,col) == "BB":
+                    if state.board.get_value(row,col) == "BB" and len(state.board.possibilidades[side*row+col])>0:
                         state.board.change_piece(row,col,state.board.possibilidades[side*row+col][0])
             #esquerda
             if len(state.board.possibilidades[side*row+col+1]) == 1 or state.board.get_value(row, col+1) in voltas and len(state.board.possibilidades[side*row+col+1]) == 2:
@@ -514,7 +579,7 @@ class PipeMania(Problem):
                     return True
                 elif "BE" in state.board.possibilidades[side*row+col] and ((len(state.board.possibilidades[side*row+col+1]) == 1 and state.board.get_value(row,col+1) in pointleft) or (state.board.get_value(row, col+1) in voltas and "VB" not in state.board.possibilidades[side*row+col+1] and "VD" not in state.board.possibilidades[side*row+col+1])):
                     state.board.possibilidades[side*row+col].remove("BE")
-                    if state.board.get_value(row,col) == "BE":
+                    if state.board.get_value(row,col) == "BE" and len(state.board.possibilidades[side*row+col])>0:
                         state.board.change_piece(row,col,state.board.possibilidades[side*row+col][0])
             #direita
             if len(state.board.possibilidades[side*row+col-1]) == 1 or state.board.get_value(row, col-1) in voltas and len(state.board.possibilidades[side*row+col-1]) == 2:
@@ -524,7 +589,7 @@ class PipeMania(Problem):
                     return True
                 elif "BD" in state.board.possibilidades[side*row+col] and ((len(state.board.possibilidades[side*row+col-1]) == 1 and state.board.get_value(row,col-1) in pointright) or (state.board.get_value(row, col-1) in voltas and "VC" not in state.board.possibilidades[side*row+col-1] and "VE" not in state.board.possibilidades[side*row+col-1])):
                     state.board.possibilidades[side*row+col].remove("BD")
-                    if state.board.get_value(row,col) == "BD":
+                    if state.board.get_value(row,col) == "BD" and len(state.board.possibilidades[side*row+col])>0:
                         state.board.change_piece(row,col,state.board.possibilidades[side*row+col][0])
         elif state.board.get_value(row,col) in ligacoes:
             #baixo
@@ -577,7 +642,7 @@ class PipeMania(Problem):
                     if "VE" in state.board.possibilidades[side*row+col]:
                         state.board.possibilidades[side*row+col].remove("VE")
                         changes = True
-                    if state.board.get_value(row,col) in ["VB", "VE"]:
+                    if state.board.get_value(row,col) in ["VB", "VE"] and len(state.board.possibilidades[side*row+col])>0:
                         state.board.change_piece(row,col,state.board.possibilidades[side*row+col][0])
                 elif (len(state.board.possibilidades[side*(row-1)+col]) == 1 and state.board.get_value(row-1,col) not in pointdown) or (state.board.get_value(row-1, col) in voltas and "VB" not in state.board.possibilidades[side*(row-1)+col] and "VE" not in state.board.possibilidades[side*(row-1)+col]):
                     if "VC" in state.board.possibilidades[side*row+col]:
@@ -586,7 +651,7 @@ class PipeMania(Problem):
                     if "VD" in state.board.possibilidades[side*row+col]:
                         state.board.possibilidades[side*row+col].remove("VD")
                         changes = True
-                    if state.board.get_value(row,col) in ["VC", "VD"]:
+                    if state.board.get_value(row,col) in ["VC", "VD"] and len(state.board.possibilidades[side*row+col])>0:
                         state.board.change_piece(row,col,state.board.possibilidades[side*row+col][0])
             # baixo
             if row != last and (len(state.board.possibilidades[side*(row+1)+col]) == 1 or state.board.get_value(row+1, col) in voltas and len(state.board.possibilidades[side*(row+1)+col]) == 2):
@@ -597,7 +662,7 @@ class PipeMania(Problem):
                     if "VD" in state.board.possibilidades[side*row+col]:
                         state.board.possibilidades[side*row+col].remove("VD")
                         changes = True
-                    if state.board.get_value(row,col) in ["VC", "VD"]:
+                    if state.board.get_value(row,col) in ["VC", "VD"] and len(state.board.possibilidades[side*row+col])>0:
                         state.board.change_piece(row,col,state.board.possibilidades[side*row+col][0])
                 elif (len(state.board.possibilidades[side*(row+1)+col]) == 1 and state.board.get_value(row+1,col) not in pointup) or (state.board.get_value(row+1, col) in voltas and "VC" not in state.board.possibilidades[side*(row+1)+col] and "VD" not in state.board.possibilidades[side*(row+1)+col]):
                     if "VB" in state.board.possibilidades[side*row+col]:
@@ -606,7 +671,7 @@ class PipeMania(Problem):
                     if "VE" in state.board.possibilidades[side*row+col]:
                         state.board.possibilidades[side*row+col].remove("VE")
                         changes = True
-                    if state.board.get_value(row,col) in ["VB", "VE"]:
+                    if state.board.get_value(row,col) in ["VB", "VE"] and len(state.board.possibilidades[side*row+col])>0:
                         state.board.change_piece(row,col,state.board.possibilidades[side*row+col][0])
             # esquerda
             if col != 0 and (len(state.board.possibilidades[side*row+col-1]) == 1 or state.board.get_value(row, col-1) in voltas and len(state.board.possibilidades[side*row+col-1]) == 2):
@@ -617,7 +682,7 @@ class PipeMania(Problem):
                     if "VD" in state.board.possibilidades[side*row+col]:
                         state.board.possibilidades[side*row+col].remove("VD")
                         changes = True
-                    if state.board.get_value(row,col) in ["VB", "VD"]:
+                    if state.board.get_value(row,col) in ["VB", "VD"] and len(state.board.possibilidades[side*row+col])>0:
                         state.board.change_piece(row,col,state.board.possibilidades[side*row+col][0])
                 elif (len(state.board.possibilidades[side*row+col-1]) == 1 and state.board.get_value(row,col-1) not in pointright) or (state.board.get_value(row, col-1) in voltas and "VB" not in state.board.possibilidades[side*row+col-1] and "VD" not in state.board.possibilidades[side*row+col-1]):
                     if "VC" in state.board.possibilidades[side*row+col]:
@@ -626,7 +691,7 @@ class PipeMania(Problem):
                     if "VE" in state.board.possibilidades[side*row+col]:
                         state.board.possibilidades[side*row+col].remove("VE")
                         changes = True
-                    if state.board.get_value(row,col) in ["VC", "VE"]:
+                    if state.board.get_value(row,col) in ["VC", "VE"] and len(state.board.possibilidades[side*row+col])>0:
                         state.board.change_piece(row,col,state.board.possibilidades[side*row+col][0])
             # direita
             if col != last and (len(state.board.possibilidades[side*row+col+1]) == 1 or state.board.get_value(row, col+1) in voltas and len(state.board.possibilidades[side*row+col+1]) == 2):
@@ -637,7 +702,7 @@ class PipeMania(Problem):
                     if "VE" in state.board.possibilidades[side*row+col]:
                         state.board.possibilidades[side*row+col].remove("VE")
                         changes = True
-                    if state.board.get_value(row,col) in ["VC", "VE"]:
+                    if state.board.get_value(row,col) in ["VC", "VE"] and len(state.board.possibilidades[side*row+col])>0:
                         state.board.change_piece(row,col,state.board.possibilidades[side*row+col][0])
                 elif (len(state.board.possibilidades[side*row+col+1]) == 1 and state.board.get_value(row,col+1) not in pointleft) or (state.board.get_value(row, col+1) in voltas and "VC" not in state.board.possibilidades[side*row+col+1] and "VE" not in state.board.possibilidades[side*row+col+1]):
                     if "VB" in state.board.possibilidades[side*row+col]:
@@ -646,7 +711,7 @@ class PipeMania(Problem):
                     if "VD" in state.board.possibilidades[side*row+col]:
                         state.board.possibilidades[side*row+col].remove("VD")
                         changes = True
-                    if state.board.get_value(row,col) in ["VB", "VD"]:
+                    if state.board.get_value(row,col) in ["VB", "VD"] and len(state.board.possibilidades[side*row+col])>0:
                         state.board.change_piece(row,col,state.board.possibilidades[side*row+col][0])
         return changes
 
@@ -697,19 +762,22 @@ class PipeMania(Problem):
         The argument frontier should be an empty queue.
         Repeats infinitely in case of loops.
         """
+        frontier = [[Node(self.initial),-1]]  # Stack
         
-        frontier = [Node(self.initial)]  # Stack
-
         while frontier:
-            node = frontier.pop()
+
+            todo = frontier.pop()
+            node = todo[0]
+            b=todo[1]
             self.infer(node.state)
-            print(node.state.board.draw())
+            #return node
             if self.goal_test(node.state):
                 return node
-            elif [] not in node.state.board.possibilidades:
-                frontier.extend(node.expand(self))
-            else:
+            elif [] in node.state.board.possibilidades:
                 self.change_all(frontier)
+            else:
+                b+=1
+                frontier.extend(node.expand(self,b))
         return None
 
     # TODO: outros metodos da classe
@@ -721,10 +789,12 @@ if __name__ == "__main__":
     problem = PipeMania(board)
     problem.define_possibilities()
     problem.fix_sides()
+    problem.infer(problem.initial)
+    
     # Obter o nó solução usando a procura em profundidade:
     
     goal_node = problem.depth_first_tree_search()
-    print(goal_node.state.board.draw())
+    print(goal_node.state.board.show())
     #print("Is goal?", problem.goal_test(goal_node.state))
    
     
